@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Find Internships</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <style>
+    #map {
+      width: 100%;
+      height: 500px;
+      border-radius: 10px;
+    }
+    footer {
+      height: 50px;
+      background-color: #f8f9fa;
+      margin-top: 50px;
+    }
+  </style>
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.21.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+  <div class="container mt-4">
+    <a href="index.html" class="btn btn-secondary mb-3">← Back to Home</a>
+    <h2 class="mb-4">Find Internships</h2>
+    <div id="map"></div>
+  </div>
+
+  <footer class="text-center d-flex align-items-center justify-content-center">
+    <p class="mb-0">Made by Adama & Suraj & Vuk</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    // Firebase configuration – same as in submit.html
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Initialize the map
+    const map = L.map('map').setView([20, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Mapping from country names to coordinates (update as needed)
+    const countryCoordinates = {
+      "USA": [37.0902, -95.7129],
+      "UK": [55.3781, -3.4360],
+      "France": [46.603354, 1.888334],
+      "Germany": [51.1657, 10.4515],
+      "Japan": [36.2048, 138.2529]
+      // Add more countries here if needed
+    };
+
+    // Retrieve proposals from Firestore and add markers to the map
+    db.collection("proposals").orderBy("timestamp").onSnapshot(snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === "added") {
+          const proposal = change.doc.data();
+          const coords = countryCoordinates[proposal.country];
+          if (coords) {
+            const marker = L.marker(coords).addTo(map);
+            marker.bindPopup(`
+              <strong>${proposal.title}</strong><br>
+              ${proposal.description}<br>
+              <a href="${proposal.link}" target="_blank">View Internship</a>
+            `);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>
