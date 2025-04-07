@@ -36,11 +36,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script>
-    // Firebase configuration – same as in submit.html
+    // Replace these values with your Firebase project configuration:
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_AUTH_DOMAIN",
-      projectId: "YOUR_PROJECT_ID",
+      apiKey: "AIzaSyAikgkw5GG7gtdVqAwlhGzYreB9k5P-wwo",
+      authDomain: "english-2481e.firebaseapp.com",
+      projectId: "english-2481e",
+      // Add additional configuration properties if needed
     };
 
     // Initialize Firebase
@@ -53,30 +54,26 @@
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Mapping from country names to coordinates (update as needed)
+    // Mapping from country names to coordinates (update or add more as needed)
     const countryCoordinates = {
       "USA": [37.0902, -95.7129],
       "UK": [55.3781, -3.4360],
       "France": [46.603354, 1.888334],
       "Germany": [51.1657, 10.4515],
       "Japan": [36.2048, 138.2529]
-      // Add more countries here if needed
     };
 
-    // Retrieve proposals from Firestore and add markers to the map
-    db.collection("proposals").orderBy("timestamp").onSnapshot(snapshot => {
-      snapshot.docChanges().forEach(change => {
-        if (change.type === "added") {
-          const proposal = change.doc.data();
-          const coords = countryCoordinates[proposal.country];
-          if (coords) {
-            const marker = L.marker(coords).addTo(map);
-            marker.bindPopup(`
-              <strong>${proposal.title}</strong><br>
-              ${proposal.description}<br>
-              <a href="${proposal.link}" target="_blank">View Internship</a>
-            `);
-          }
+    // Retrieve all proposals and add markers to the map
+    db.collection("proposals").get().then(querySnapshot => {
+      querySnapshot.forEach(doc => {
+        const proposal = doc.data();
+        const coords = countryCoordinates[proposal.country];
+        if (coords) {
+          L.marker(coords).addTo(map).bindPopup(`
+            <strong>${proposal.title}</strong><br>
+            ${proposal.description}<br>
+            <a href="${proposal.link}" target="_blank">View Internship</a>
+          `);
         }
       });
     });
